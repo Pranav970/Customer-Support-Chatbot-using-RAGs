@@ -1,1 +1,51 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+.eggs/
+.venv/
+venv/
+env/
+*.env
+!.env.example
 
+# Data & models
+backend/data/
+*.bin
+*.pt
+*.safetensors
+
+# Node
+node_modules/
+frontend/dist/
+frontend/.env
+!frontend/.env.example
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+logs/
+
+# Coverage
+.coverage
+htmlcov/
+.pytest_cache/
+
+# Keep data folder structure but ignore contents
+backend/data/chromadb/*
+backend/data/uploads/*
+!backend/data/chromadb/.gitkeep
+!backend/data/uploads/.gitkeep
