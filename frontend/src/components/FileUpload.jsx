@@ -1,52 +1,74 @@
-import { Trash2, FileText, Image, File } from 'lucide-react'
+import { useState, useCallback } from 'react'
+import { useDropzone } from 'react-dropzone'
+import { UploadCloud, CheckCircle, AlertCircle } from 'lucide-react'
 
-const TYPE_ICONS = {
-  pdf:      <FileText size={13} color="var(--accent)" />,
-  docx:     <FileText size={13} color="#7eb8ff" />,
-  doc:      <FileText size={13} color="#7eb8ff" />,
-  txt:      <File      size={13} color="var(--text-muted)" />,
-  md:       <File      size={13} color="var(--text-muted)" />,
-  markdown: <File      size={13} color="var(--text-muted)" />,
-  png:      <Image     size={13} color="#ffb347" />,
-  jpg:      <Image     size={13} color="#ffb347" />,
-  jpeg:     <Image     size={13} color="#ffb347" />,
-  webp:     <Image     size={13} color="#ffb347" />,
+const ACCEPTED = {
+  'application/pdf': ['.pdf'],
+  'application/vnd.openxmlformats-officedocument.wordprocessingml.document': ['.docx'],
+  'application/msword': ['.doc'],
+  'text/plain': ['.txt'],
+  'text/markdown': ['.md', '.markdown'],
+  'image/png': ['.png'],
+  'image/jpeg': ['.jpg', '.jpeg'],
+  'image/webp': ['.webp'],
 }
 
-function formatDate(iso) {
-  if (!iso) return ''
-  try { return new Date(iso).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) }
-  catch { return '' }
-}
+export default function FileUpload({ onUpload, uploading, progress }) {
+  const [status, setStatus] = useState(null) // { type: 'success'|'error', msg }
 
-export default function DocumentList({ documents, onDelete, loading }) {
-  if (loading) return <p className="no-docs">Loading documents…</p>
-  if (!documents.length) return <p className="no-docs">No documents indexed yet.<br />Upload one above to get started.</p>
+  const onDrop = useCallback(async (accepted) => {
+    if (!accepted.length) return
+    setStatus(null)
+    try {
+      const result = await onUpload(accepted[0])
+      setStatus({ type: 'success', msg: `✓ "${result.filename}" — ${result.chunks_indexed} chunks indexed` })
+      setTimeout(() => setStatus(null), 5000)
+    } catch (err) {
+      setStatus({ type: 'error', msg: err.message || 'Upload failed.' })
+    }
+  }, [onUpload])
+
+  const { getRootProps, getInputProps, isDragActive } = useDropzone({
+    onDrop,
+    accept: ACCEPTED,
+    multiple: false,
+    disabled: uploading,
+    maxSize: 50 * 1024 * 1024,
+  })
 
   return (
     <div>
-      {documents.map((doc) => (
-        <div key={doc.doc_id} className="doc-item">
-          <div className="doc-item-info">
-            <div className="doc-item-name" title={doc.filename}>
-              {TYPE_ICONS[doc.file_type] || <File size={13} />}
-              {' '}
-              {doc.filename}
-            </div>
-            <div className="doc-item-meta">
-              {doc.chunk_count} chunk{doc.chunk_count !== 1 ? 's' : ''} · {formatDate(doc.uploaded_at)}
-            </div>
-          </div>
-          <button
-            className="doc-delete-btn"
-            onClick={() => onDelete(doc.doc_id)}
-            title="Delete document"
-            aria-label={`Delete ${doc.filename}`}
-          >
-            <Trash2 size={14} />
-          </button>
+      <div
+        {...getRootProps()}
+        className={`dropzone${isDragActive ? ' active' : ''}`}
+        style={{ opacity: uploading ? 0.6 : 1 }}
+      >
+        <input {...getInputProps()} />
+        <UploadCloud size={22} color="var(--accent)" />
+        <p>
+          {isDragActive
+            ? 'Drop it here!'
+            : uploading
+            ? 'Uploading…'
+            : <><strong>Click or drag</strong> a file here</>}
+        </p>
+        <p className="formats text-muted">PDF · DOCX · TXT · MD · PNG · JPG · WEBP</p>
+      </div>
+
+      {uploading && (
+        <div className="progress-bar-wrap">
+          <div className="progress-bar" style={{ width: `${progress}%` }} />
         </div>
-      ))}
+      )}
+
+      {status && (
+        <div className={`upload-status ${status.type}`}>
+          {status.type === 'success'
+            ? <CheckCircle size={13} style={{ display: 'inline', marginRight: 5 }} />
+            : <AlertCircle size={13} style={{ display: 'inline', marginRight: 5 }} />}
+          {status.msg}
+        </div>
+      )}
     </div>
   )
 }
