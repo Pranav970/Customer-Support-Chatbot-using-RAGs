@@ -1,0 +1,27 @@
+# Web framework
+fastapi==0.115.5
+uvicorn[standard]==0.32.1
+
+# Pydantic / settings
+pydantic==2.10.3
+pydantic-settings==2.6.1
+
+# Anthropic SDK
+anthropic==0.40.0
+
+# Vector database
+chromadb==0.5.23
+
+# Embeddings — sentence-transformers manages torch/numpy as transitive deps
+# Do NOT pin torch or numpy here; let pip resolve platform-specific wheels
+sentence-transformers==3.3.1
+
+# Document parsing
+PyPDF2==3.0.1
+python-docx==1.1.2
+
+# File upload (multipart form support for FastAPI)
+python-multipart==0.0.18
+
+# Image support
+Pillow==11.0.0
